@@ -7,13 +7,10 @@ Spring Boot 3.3.5 · Java 21 · Spring Data JPA · PostgreSQL · JUnit 5 + Mocki
 
 ## 1. Subir o banco
 
-Se o container da Fase 4 já existe, é só ligar:
-
 ```bash
 docker start postgres-dev
 ```
 
-Se não existe:
 
 ```bash
 docker run --name postgres-dev \
@@ -24,7 +21,6 @@ docker run --name postgres-dev \
   -d postgres:16
 ```
 
-O banco `saude_basica` precisa existir. Se ainda não criou, no DBeaver:
 
 ```sql
 CREATE DATABASE saude_basica;
