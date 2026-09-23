@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: saude-basica-api
+  profiles:
+    active: dev
+
+server:
+  port: 8080
+
+---
+# Perfil DEV: PostgreSQL local no Docker.
+# Credenciais vem de variaveis de ambiente; o valor apos ":" e so o padrao do container local.
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/saude_basica}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:senha123}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    # fecha a sessao do banco ao sair do @Service, em vez de mante-la aberta ate o JSON ser escrito
+    open-in-view: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+---
+# Perfil PROD: sem valores padrao, tudo obrigatoriamente via variaveis de ambiente.
+# "validate" so confere se as tabelas batem com as entidades, nunca altera o banco.
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
