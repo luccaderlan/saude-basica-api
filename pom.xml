@@ -74,6 +74,8 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <!-- Corrige spring-boot:run em caminhos com acentos no Windows (#43051). -->
+                <version>3.3.6</version>
             </plugin>
         </plugins>
     </build>
