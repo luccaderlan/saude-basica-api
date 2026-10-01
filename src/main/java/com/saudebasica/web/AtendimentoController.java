@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.saudebasica.dto.PaginaDTO;
+import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
 @RequestMapping("/api/atendimentos")
@@ -37,13 +38,17 @@ public class AtendimentoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AtendimentoResponseDTO>> listar(
-            @RequestParam(required = false) AtendimentoStatus status) {
+    @Operation(summary = "Lista paginada; page >= 0, size de 1 a 100, sort: id/dataAtendimento/status,asc/desc")
+    public ResponseEntity<PaginaDTO<AtendimentoResponseDTO>> listar(
+            @RequestParam(required = false) AtendimentoStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "dataAtendimento,desc") String sort) {
 
         if (status == null) {
-            return ResponseEntity.ok(atendimentoService.listarTodos());
+            return ResponseEntity.ok(atendimentoService.listarTodos(page, size, sort));
         }
-        return ResponseEntity.ok(atendimentoService.listarPorStatus(status));
+        return ResponseEntity.ok(atendimentoService.listarPorStatus(status, page, size, sort));
     }
 
     @GetMapping("/{id}")

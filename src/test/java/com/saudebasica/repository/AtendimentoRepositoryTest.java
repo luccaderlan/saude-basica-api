@@ -18,7 +18,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
+@DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop")
+@org.springframework.test.context.ActiveProfiles("test")
 class AtendimentoRepositoryTest {
 
     private static final LocalDateTime HORARIO = LocalDateTime.of(2030, 1, 10, 9, 0);

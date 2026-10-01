@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.List;
+import com.saudebasica.dto.PaginaDTO;
 
 @Service
 public class AtendimentoService {
@@ -77,19 +77,15 @@ public class AtendimentoService {
     }
 
     @Transactional(readOnly = true)
-    public List<AtendimentoResponseDTO> listarTodos() {
-        return atendimentoRepository.findAll()
-                .stream()
-                .map(AtendimentoResponseDTO::fromEntity)
-                .toList();
+    public PaginaDTO<AtendimentoResponseDTO> listarTodos(int page, int size, String sort) {
+        return PaginaDTO.fromPage(atendimentoRepository.findAll(Paginacao.criar(page, size, sort))
+                .map(AtendimentoResponseDTO::fromEntity));
     }
 
     @Transactional(readOnly = true)
-    public List<AtendimentoResponseDTO> listarPorStatus(AtendimentoStatus status) {
-        return atendimentoRepository.findByStatus(status)
-                .stream()
-                .map(AtendimentoResponseDTO::fromEntity)
-                .toList();
+    public PaginaDTO<AtendimentoResponseDTO> listarPorStatus(AtendimentoStatus status, int page, int size, String sort) {
+        return PaginaDTO.fromPage(atendimentoRepository.findByStatus(status, Paginacao.criar(page, size, sort))
+                .map(AtendimentoResponseDTO::fromEntity));
     }
 
     @Transactional(readOnly = true)
@@ -98,15 +94,14 @@ public class AtendimentoService {
     }
 
     @Transactional(readOnly = true)
-    public List<AtendimentoResponseDTO> listarPorPaciente(Long pacienteId) {
+    public PaginaDTO<AtendimentoResponseDTO> listarPorPaciente(Long pacienteId, int page, int size, String sort) {
+        var pageable = Paginacao.criar(page, size, sort);
         // 404 em vez de lista vazia: distingue "paciente sem historico" de "paciente inexistente"
         if (!pacienteRepository.existsById(pacienteId)) {
             throw new RecursoNaoEncontradoException("Paciente nao encontrado com id " + pacienteId);
         }
-        return atendimentoRepository.findByPacienteId(pacienteId)
-                .stream()
-                .map(AtendimentoResponseDTO::fromEntity)
-                .toList();
+        return PaginaDTO.fromPage(atendimentoRepository.findByPacienteId(pacienteId, pageable)
+                .map(AtendimentoResponseDTO::fromEntity));
     }
 
     @Transactional

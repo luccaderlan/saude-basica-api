@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.saudebasica.dto.PaginaDTO;
+import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
 @RequestMapping("/api/pacientes")
@@ -21,7 +23,11 @@ public class PacienteController {
     }
 
     @GetMapping("/{id}/atendimentos")
-    public ResponseEntity<List<AtendimentoResponseDTO>> historico(@PathVariable Long id) {
-        return ResponseEntity.ok(atendimentoService.listarPorPaciente(id));
+    @Operation(summary = "Historico paginado do paciente; mesmos parametros da listagem geral")
+    public ResponseEntity<PaginaDTO<AtendimentoResponseDTO>> historico(@PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "dataAtendimento,desc") String sort) {
+        return ResponseEntity.ok(atendimentoService.listarPorPaciente(id, page, size, sort));
     }
 }

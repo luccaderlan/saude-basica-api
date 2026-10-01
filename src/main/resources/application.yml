@@ -9,7 +9,7 @@ server:
 
 ---
 # Perfil DEV: PostgreSQL local no Docker.
-# Credenciais vem de variaveis de ambiente; o valor apos ":" e so o padrao do container local.
+# A senha deve ser informada no ambiente; nao e versionada.
 spring:
   config:
     activate:
@@ -18,12 +18,12 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/saude_basica}
     username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:senha123}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     # fecha a sessao do banco ao sair do @Service, em vez de mante-la aberta ate o JSON ser escrito
     open-in-view: false
     show-sql: true
