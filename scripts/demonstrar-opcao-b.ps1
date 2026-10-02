@@ -19,7 +19,23 @@ function EsperarErro([string]$Caminho, [int]$Status) {
     } catch {
         if ($null -eq $_.Exception.Response) { throw }
         $codigo = [int]$_.Exception.Response.StatusCode
-        $corpo = $_.ErrorDetails.Message | ConvertFrom-Json
+        $textoErro = $_.ErrorDetails.Message
+        # Windows PowerShell pode deixar ErrorDetails vazio mesmo com uma resposta JSON.
+        if ([string]::IsNullOrWhiteSpace($textoErro)) {
+            $respostaErro = $_.Exception.Response
+            if ($respostaErro.PSObject.Methods['GetResponseStream']) {
+                $leitor = New-Object System.IO.StreamReader($respostaErro.GetResponseStream())
+                try {
+                    $textoErro = $leitor.ReadToEnd()
+                } finally {
+                    $leitor.Dispose()
+                }
+            } elseif ($null -ne $respostaErro.Content) {
+                $textoErro = $respostaErro.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+            }
+        }
+        Confirmar (-not [string]::IsNullOrWhiteSpace($textoErro)) "HTTP $codigo sem corpo de erro em $Caminho."
+        $corpo = $textoErro | ConvertFrom-Json
     }
     Confirmar ($codigo -eq $Status) "Esperava HTTP $Status em $Caminho, recebeu $codigo."
     Confirmar ($corpo.status -eq $Status) 'O erro deve conter status no JSON.'
