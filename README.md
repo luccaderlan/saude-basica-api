@@ -146,10 +146,6 @@ correspondem ao banco conferido em 01/10/2026; podem ser sobrescritos com
 `-BaseUrl`, `-DataInicio`, `-DataFim`, `-PacienteId`. O dia 01/10 não contém os
 atendimentos antigos: usar só a data de hoje produziria um relatório vazio.
 
-- [Decisões e respostas para defesa](docs/DECISOES.md)
-- [Roteiro de 7–10 minutos para 02/10/2026](docs/APRESENTACAO-2026-10-02.md)
-- [Evidências e limites da validação](docs/VALIDACAO.md)
-- [SQL somente leitura para conferir preservação](db/verificar-dados.sql)
 
 ## Arquitetura
 
