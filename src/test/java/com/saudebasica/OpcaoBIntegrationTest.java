@@ -10,6 +10,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -38,6 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @Transactional
+@DisplayName("Paginação e relatórios da API")
 class OpcaoBIntegrationTest {
     private static final String LISTA = "/api/atendimentos";
     private static final String RELATORIO = "/api/relatorios/atendimentos";
@@ -83,6 +85,7 @@ class OpcaoBIntegrationTest {
     }
 
     @Test
+    @DisplayName("Divide as listagens em páginas com ordem fixa e informações da página")
     void devePaginarTodasAsListagensComOrdemEstavelEMetadados() throws Exception {
         for (String rota : List.of(LISTA, "/api/pacientes/" + pacienteId + "/atendimentos")) {
             List<Long> ids = new ArrayList<>();
@@ -104,6 +107,7 @@ class OpcaoBIntegrationTest {
     }
 
     @Test
+    @DisplayName("Filtra por status antes de paginar e conta apenas os atendimentos filtrados")
     void deveFiltrarAntesDePaginarEContarApenasOStatus() throws Exception {
         mvc.perform(get(LISTA).param("status", "CONCLUIDO").param("size", "2").param("page", "1"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.content.length()").value(2))
@@ -112,7 +116,8 @@ class OpcaoBIntegrationTest {
                 .andExpect(jsonPath("$.totalElements").value(4)).andExpect(jsonPath("$.totalPages").value(2));
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @DisplayName("Ordena na direção escolhida e desempata pelo ID")
     @ValueSource(strings = {"dataAtendimento,desc", "status,asc", "status,desc"})
     void deveRespeitarDirecaoEDesempatarPorId(String sort) throws Exception {
         List<JsonNode> itens = new ArrayList<>();
@@ -136,6 +141,7 @@ class OpcaoBIntegrationTest {
     }
 
     @Test
+    @DisplayName("Retorna uma página vazia além do limite e mantém o total de atendimentos")
     void deveRetornarPaginaVaziaForaDoLimitePreservandoTotal() throws Exception {
         mvc.perform(get(LISTA).param("size", "2").param("page", "99"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.content").isEmpty())
@@ -143,6 +149,7 @@ class OpcaoBIntegrationTest {
     }
 
     @Test
+    @DisplayName("Retorna histórico vazio para paciente sem atendimentos e 404 para paciente inexistente")
     void deveDistinguirPacienteSemHistoricoDePacienteInexistente() throws Exception {
         mvc.perform(get("/api/pacientes/" + pacienteSemHistoricoId + "/atendimentos"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.content").isEmpty())
@@ -152,6 +159,7 @@ class OpcaoBIntegrationTest {
     }
 
     @Test
+    @DisplayName("Usa os valores padrão da paginação e permite ordenar pelo ID")
     void deveAplicarPadroesDaPaginacaoEPermitirOrdenacaoPorId() throws Exception {
         mvc.perform(get(LISTA)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.number").value(0)).andExpect(jsonPath("$.size").value(20))
@@ -161,7 +169,8 @@ class OpcaoBIntegrationTest {
                 .andExpect(jsonPath("$.sort[0]").value("id,desc"));
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @DisplayName("Retorna 400 para parâmetros inválidos na listagem")
     @ValueSource(strings = {"page=-1", "page=abc", "size=0", "size=-1", "size=101", "size=abc",
             "sort=nome,asc", "sort=id,xpto", "sort=id", "sort=id,asc,status", "status=XPTO"})
     void deveRejeitarParametrosInvalidosNaListagem(String parametro) throws Exception {
@@ -171,6 +180,7 @@ class OpcaoBIntegrationTest {
     }
 
     @Test
+    @DisplayName("Valida a paginação no histórico do paciente e na listagem filtrada")
     void deveValidarPaginacaoTambemNoHistoricoENoFiltro() throws Exception {
         mvc.perform(get("/api/pacientes/" + pacienteId + "/atendimentos").param("size", "101"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
@@ -179,6 +189,7 @@ class OpcaoBIntegrationTest {
     }
 
     @Test
+    @DisplayName("Inclui o dia inteiro no relatório, exclui o dia seguinte e mostra zero nos status sem atendimentos")
     void relatorioDeveIncluirDiaInteiroExcluirDiaSeguinteEPreencherZeros() throws Exception {
         mvc.perform(get(RELATORIO).param("dataInicio", "2030-01-10").param("dataFim", "2030-01-10"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(4))
@@ -189,6 +200,7 @@ class OpcaoBIntegrationTest {
     }
 
     @Test
+    @DisplayName("Separa unidades com o mesmo nome pelo ID e usa a unidade do atendimento")
     void relatorioDeveSepararUnidadesPorIdEUsarUnidadeDoAtendimento() throws Exception {
         mvc.perform(get(RELATORIO).param("dataInicio", "2030-01-10").param("dataFim", "2030-01-11"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(6))
@@ -204,6 +216,7 @@ class OpcaoBIntegrationTest {
     }
 
     @Test
+    @DisplayName("Retorna 200 e os quatro status com zero quando o relatório está vazio")
     void relatorioVazioDeveRetornar200EQuatroStatusComZero() throws Exception {
         mvc.perform(get(RELATORIO).param("dataInicio", "2040-01-01").param("dataFim", "2040-01-31"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(0))
@@ -214,14 +227,16 @@ class OpcaoBIntegrationTest {
                 .andExpect(jsonPath("$.porStatus.EM_ATENDIMENTO").value(0));
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @DisplayName("Retorna 400 para data inicial inválida ou maior que a final")
     @ValueSource(strings = {"2030-02-30", "10-01-2030", "xpto", "2030-01-12", "+999999999-12-31"})
     void relatorioDeveRejeitarDataInvalidaOuPeriodoInvertido(String dataInicio) throws Exception {
         mvc.perform(get(RELATORIO).param("dataInicio", dataInicio).param("dataFim", "2030-01-11"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @DisplayName("Exige as datas inicial e final para gerar o relatório")
     @ValueSource(strings = {"dataInicio", "dataFim"})
     void relatorioDeveExigirAmbasAsDatas(String parametro) throws Exception {
         mvc.perform(get(RELATORIO).param(parametro, "2030-01-10"))
@@ -229,7 +244,8 @@ class OpcaoBIntegrationTest {
                 .andExpect(jsonPath("$.erro").value("Parametro obrigatorio"));
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "{displayName}: {0}")
+    @DisplayName("Retorna 400 para data final inválida ou fora do limite aceito")
     @ValueSource(strings = {"2030-02-30", "+999999999-12-31", "0000-01-01"})
     void relatorioDeveRejeitarDataFimInvalidaOuForaDaFaixaSuportada(String dataFim) throws Exception {
         mvc.perform(get(RELATORIO).param("dataInicio", "2030-01-01").param("dataFim", dataFim))
@@ -237,6 +253,7 @@ class OpcaoBIntegrationTest {
     }
 
     @Test
+    @DisplayName("Carrega apenas a página e os dados relacionados usando duas consultas ao banco")
     void deveCarregarSomentePaginaERelacionamentosSemConsultasPorRegistro() {
         var stats = emf.unwrap(SessionFactory.class).getStatistics();
         stats.clear();
@@ -248,6 +265,7 @@ class OpcaoBIntegrationTest {
     }
 
     @Test
+    @DisplayName("Mostra a rota do relatório e os parâmetros de paginação na documentação da API")
     void devePublicarNovoContratoNoOpenApi() throws Exception {
         var result = mvc.perform(get("/v3/api-docs")).andExpect(status().isOk()).andReturn();
         JsonNode docs = mapper.readTree(result.getResponse().getContentAsString());
