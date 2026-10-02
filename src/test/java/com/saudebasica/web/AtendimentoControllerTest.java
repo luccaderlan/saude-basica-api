@@ -5,6 +5,7 @@ import com.saudebasica.dto.AtendimentoRequestDTO;
 import com.saudebasica.dto.AtendimentoResponseDTO;
 import com.saudebasica.exception.RecursoNaoEncontradoException;
 import com.saudebasica.service.AtendimentoService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -24,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AtendimentoController.class)
+@DisplayName("Rotas de atendimento")
 class AtendimentoControllerTest {
 
     private static final String URL = "/api/atendimentos";
@@ -35,6 +37,7 @@ class AtendimentoControllerTest {
     private AtendimentoService atendimentoService;
 
     @Test
+    @DisplayName("Retorna 404 quando o atendimento não existe")
     void deveRetornar404QuandoAtendimentoNaoExistir() throws Exception {
         when(atendimentoService.buscarPorId(99L))
                 .thenThrow(new RecursoNaoEncontradoException("Atendimento nao encontrado com id 99"));
@@ -46,6 +49,7 @@ class AtendimentoControllerTest {
     }
 
     @Test
+    @DisplayName("Retorna 400 quando os dados do agendamento são inválidos")
     void deveRetornar400QuandoBodyDoAgendamentoForInvalido() throws Exception {
         String bodySemCamposObrigatorios = """
                 { "descricao": "" }
@@ -62,6 +66,7 @@ class AtendimentoControllerTest {
     }
 
     @Test
+    @DisplayName("Retorna 201 quando o atendimento é agendado com dados válidos")
     void deveRetornar201QuandoAgendamentoForValido() throws Exception {
         LocalDateTime data = LocalDateTime.of(2030, 1, 10, 9, 0);
         AtendimentoResponseDTO criado = new AtendimentoResponseDTO(1L, "Consulta de rotina",

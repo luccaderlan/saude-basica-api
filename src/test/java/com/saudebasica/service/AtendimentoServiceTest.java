@@ -14,6 +14,7 @@ import com.saudebasica.repository.PacienteRepository;
 import com.saudebasica.repository.ProfissionalRepository;
 import com.saudebasica.repository.UnidadeRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("Regras de atendimento")
 class AtendimentoServiceTest {
 
     private static final ZoneId FUSO = ZoneId.of("America/Sao_Paulo");
@@ -76,6 +78,7 @@ class AtendimentoServiceTest {
     }
 
     @Test
+    @DisplayName("Agenda o atendimento para uma data futura")
     void deveAgendarAtendimentoQuandoDataForFutura() {
         // Arrange
         AtendimentoRequestDTO pedido = pedidoPara(AMANHA);
@@ -97,6 +100,7 @@ class AtendimentoServiceTest {
     }
 
     @Test
+    @DisplayName("Bloqueia o agendamento para uma data passada")
     void deveLancarExcecaoQuandoDataAtendimentoForNoPassado() {
         AtendimentoRequestDTO pedido = pedidoPara(ONTEM);
 
@@ -108,6 +112,7 @@ class AtendimentoServiceTest {
     }
 
     @Test
+    @DisplayName("Bloqueia o agendamento quando o profissional já tem atendimento no horário")
     void deveLancarExcecaoQuandoProfissionalTiverConflitoDeHorario() {
         AtendimentoRequestDTO pedido = pedidoPara(AMANHA);
         when(atendimentoRepository.existsByProfissionalIdAndDataAtendimentoAndStatus(
@@ -121,6 +126,7 @@ class AtendimentoServiceTest {
     }
 
     @Test
+    @DisplayName("Bloqueia a mudança de status de um atendimento cancelado")
     void naoDevePermitirMudarStatusDeAtendimentoCancelado() {
         Atendimento cancelado = atendimentoComStatus(AtendimentoStatus.CANCELADO);
         when(atendimentoRepository.findById(ATENDIMENTO_ID)).thenReturn(Optional.of(cancelado));
@@ -134,6 +140,7 @@ class AtendimentoServiceTest {
     }
 
     @Test
+    @DisplayName("Bloqueia a reabertura de um atendimento concluído")
     void naoDevePermitirReabrirAtendimentoConcluido() {
         Atendimento concluido = atendimentoComStatus(AtendimentoStatus.CONCLUIDO);
         when(atendimentoRepository.findById(ATENDIMENTO_ID)).thenReturn(Optional.of(concluido));
@@ -146,6 +153,7 @@ class AtendimentoServiceTest {
     }
 
     @Test
+    @DisplayName("Muda o status de um atendimento agendado para em atendimento")
     void deveMudarStatusQuandoAtendimentoEstiverAgendado() {
         Atendimento agendado = atendimentoComStatus(AtendimentoStatus.AGENDADO);
         when(atendimentoRepository.findById(ATENDIMENTO_ID)).thenReturn(Optional.of(agendado));

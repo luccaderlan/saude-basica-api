@@ -7,6 +7,7 @@ import com.saudebasica.domain.Paciente;
 import com.saudebasica.domain.Profissional;
 import com.saudebasica.domain.UnidadeSaude;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -18,7 +19,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
+@DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=create-drop")
+@org.springframework.test.context.ActiveProfiles("test")
+@DisplayName("Consultas de atendimento no banco")
 class AtendimentoRepositoryTest {
 
     private static final LocalDateTime HORARIO = LocalDateTime.of(2030, 1, 10, 9, 0);
@@ -44,6 +47,7 @@ class AtendimentoRepositoryTest {
     }
 
     @Test
+    @DisplayName("Retorna apenas os atendimentos com o status informado")
     void findByStatusDeveRetornarApenasAtendimentosDoStatusInformado() {
         persistirAtendimento("Consulta 1", HORARIO, AtendimentoStatus.AGENDADO);
         persistirAtendimento("Consulta 2", HORARIO.plusHours(1), AtendimentoStatus.AGENDADO);
@@ -60,6 +64,7 @@ class AtendimentoRepositoryTest {
     }
 
     @Test
+    @DisplayName("Retorna uma lista vazia quando nenhum atendimento tem o status informado")
     void findByStatusDeveRetornarListaVaziaQuandoNenhumAtendimentoTiverOStatus() {
         persistirAtendimento("Consulta 1", HORARIO, AtendimentoStatus.AGENDADO);
         entityManager.flush();
@@ -68,6 +73,7 @@ class AtendimentoRepositoryTest {
     }
 
     @Test
+    @DisplayName("Considera o horário ocupado apenas quando há atendimento agendado")
     void deveDetectarHorarioOcupadoApenasParaAtendimentoAgendado() {
         persistirAtendimento("Consulta agendada", HORARIO, AtendimentoStatus.AGENDADO);
         persistirAtendimento("Consulta cancelada", HORARIO.plusHours(1), AtendimentoStatus.CANCELADO);
